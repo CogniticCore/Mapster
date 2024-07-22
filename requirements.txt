@@ -1,0 +1,10 @@
+fastapi
+openai
+instructor
+tqdm
+matplotlib
+pydot
+networkx
+instructor
+pydantic
+typing
