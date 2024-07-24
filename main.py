@@ -8,11 +8,12 @@ from fastapi import FastAPI, Depends
 from fastapi.security import APIKeyHeader
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, Depends, HTTPException, Security, Query
+from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
 from fastapi.responses import StreamingResponse
 from io import BytesIO
 from PIL import Image
+import json
 
 load_dotenv()
 
@@ -48,11 +49,19 @@ async def secure_endpoint(
     ))
     generator = rmg.Generator(client=client)
     roadmap = generator.generate_roadmap(prompt, depth, retry)
-    # roadmap_data = nx.node_link_data(roadmap)
+    roadmap_data = nx.node_link_data(roadmap)
 
-    return_str = ''
-    for node in list(roadmap.nodes):
-      return_str+="{:80s} : {:s}".format(node, roadmap.nodes[node]['description'])
-    return return_str
+    # return_str = ''
+    # for node in list(roadmap.nodes):
+    #   return_str+="{:80s} : {:s}".format(node, roadmap.nodes[node]['description'])
+    return roadmap_data
 
+# @app.get("/expandgraph")
+# async def nodeexpander(
 
+# ):
+
+@app.post("/uploadfiles/")
+def create_upload_files(upload_file: UploadFile = File(...)):
+    json_data = json.load(upload_file.file)
+    return {"data_in_file": json_data}
