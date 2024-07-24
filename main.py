@@ -42,7 +42,7 @@ async def get_api_key(api_key_header: str = Security(api_key_header), api_key_qu
             detail="Could not validate OpenAi credentials",
         )
     
-async def get_serper_api_key(api_key_header: str = Security(SERPER_api_key_header), SERPER_api_key_query: str = Security(SERPER_api_key_query)):
+async def get_serper_api_key(SERPER_api_key_header: str = Security(SERPER_api_key_header), SERPER_api_key_query: str = Security(SERPER_api_key_query)):
     if SERPER_api_key_header == SERPER_API_KEY or SERPER_api_key_query == SERPER_API_KEY:
         return SERPER_API_KEY
     else:
