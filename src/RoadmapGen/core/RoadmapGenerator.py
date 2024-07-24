@@ -1,12 +1,9 @@
 from tqdm import tqdm
-import matplotlib.pyplot as plt
-import pydot
 import networkx as nx
 from networkx.drawing.nx_pydot import graphviz_layout
-import instructor
-from openai import OpenAI
 from typing import List
 from pydantic import BaseModel, Field
+from . import Prompt
 
 class TopicInfo(BaseModel):
     topic: str = Field(
@@ -21,10 +18,6 @@ class TopicInfo(BaseModel):
     description_prerequisite_topics: List[str] = Field(
         description="A list of description of prerequisite topics"
     )
-
-prompt_template = """Main Topic: {main_topic}
-Current Topic: {current_topic}
-Current Topic Description: {current_description}"""
 
 class Generator:
     def __init__(self, client):
@@ -66,11 +59,11 @@ class Generator:
             leaf_node = [x for x in graph.nodes() if graph.out_degree(x)==0]
 
             for topic in tqdm(leaf_node):
-                _, _, child_prerequisites, child_description_prerequisites = self.call_llm(prompt_template.format(main_topic = root_topic, current_topic = topic, current_description = graph.nodes[topic]['description']))
+                _, _, child_prerequisites, child_description_prerequisites = self.call_llm(Prompt.LlmPrompt.getprompt().format(main_topic = root_topic, current_topic = topic, current_description = graph.nodes[topic]['description']))
 
                 i = retry
                 while len(child_prerequisites) != len(child_description_prerequisites) and i > 0:
-                    _, _, child_prerequisites, child_description_prerequisites = self.call_llm(prompt_template.format(root_topic, current_topic = topic, current_description = graph.nodes[topic]['description']))
+                    _, _, child_prerequisites, child_description_prerequisites = self.call_llm(Prompt.LlmPrompt.getprompt().format(root_topic, current_topic = topic, current_description = graph.nodes[topic]['description']))
                     i -= 1
                     print('wow')
 

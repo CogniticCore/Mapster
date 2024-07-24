@@ -8,3 +8,5 @@ networkx
 instructor
 pydantic
 typing
+python-dotenv
+pathlib
