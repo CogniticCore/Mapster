@@ -2,7 +2,7 @@ from src import RoadmapGen as rmg
 import instructor
 from openai import OpenAI
 import matplotlib.pyplot as plt
-import networkx as nx
+import networkx as nx   
 from networkx.drawing.nx_pydot import graphviz_layout
 from fastapi import FastAPI, Depends
 from fastapi.security import APIKeyHeader
@@ -58,7 +58,7 @@ async def secure_endpoint(
     prompt: str = Query(..., description="The prompt for the LLM"),
     depth: int = Query(3, description="The depth of the roadmap"),
     retries: int = Query(2, description="The number of retries for the LLM call"),
-    # redunretries: int = Query(2, description="The number of retries for the redundancy node LLM call")
+    redunretries: int = Query(2, description="The number of retries for the redundancy node LLM call")
 ):
     client = instructor.from_openai(OpenAI(
     api_key=openai_api_key
@@ -66,10 +66,12 @@ async def secure_endpoint(
     generator = rmg.Generator(client=client)
     Redundant_fixer = rmg.RedundantFunc(client=client)
     websearch = rmg.ResourceFinder(SERPER_API_KEY = serper_api_key)
+    pagerank = rmg.ranker()
 
-    roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = retries)
-    cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph=roadmap)
+    roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = redunretries)
+    cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph=roadmap, retries = retries)
     cleaned_roadmap = websearch.serp_recommendation_graph(graph = cleaned_roadmap, SERPER_API_KEY =  serper_api_key)
+    cleaned_roadmap = pagerank.get_page_rank(graph = cleaned_roadmap)
 
     cleaned_roadmap = nx.node_link_data(cleaned_roadmap)
     return cleaned_roadmap
