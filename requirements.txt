@@ -10,4 +10,5 @@ pydantic
 typing
 python-dotenv
 pathlib
-request
+requests
+cohere

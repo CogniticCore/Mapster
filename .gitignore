@@ -2,3 +2,4 @@ venv
 .env
 tmp.txt
 respondformat.json
+__pycache_
