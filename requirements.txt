@@ -10,3 +10,4 @@ pydantic
 typing
 python-dotenv
 pathlib
+request

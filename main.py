@@ -56,12 +56,19 @@ async def secure_endpoint(
     #   return_str+="{:80s} : {:s}".format(node, roadmap.nodes[node]['description'])
     return roadmap_data
 
-# @app.get("/expandgraph")
-# async def nodeexpander(
-
-# ):
-
 @app.post("/uploadfiles/")
-def create_upload_files(upload_file: UploadFile = File(...)):
+async def create_upload_files(
+    openai_api_key: str = Query(get_api_key),
+    upload_file: UploadFile = File(...),
+    prompt: str = Query(..., description="The prompt for the LLM"),
+    depth: int = Query(3, description="The depth of the roadmap"),
+    retry: int = Query(2, description="The number of retries for the LLM call"),
+    target_node: str = Query(..., description="target node id")
+):
     json_data = json.load(upload_file.file)
-    return {"data_in_file": json_data}
+    #mapping nodes
+    node_id_map = {node['id']: node for node in json_data['nodes']}
+    def get_node_by_id(node_id):
+        return node_id_map.get(node_id)
+    # return {"data_in_file": json_data}
+    return get_node_by_id("Audio Engineering")
