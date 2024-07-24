@@ -103,3 +103,4 @@ class RedundantFunc:
             graph.remove_edges_from(nx.selfloop_edges(graph))
             graph.remove_nodes_from(list(nx.isolates(graph)))
         return graph
+    #meow
