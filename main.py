@@ -51,37 +51,6 @@ async def get_serper_api_key(api_key_header: str = Security(SERPER_api_key_heade
             detail="Could not validate Serper credentials",
         )
     
-# @app.get("/Getgraph")
-# async def secure_endpoint(
-#     openai_api_key: str = Query(get_api_key),
-#     prompt: str = Query(..., description="The prompt for the LLM"),
-#     depth: int = Query(3, description="The depth of the roadmap"),
-#     retries: int = Query(2, description="The number of retries for the LLM call")
-# ):
-#     client = instructor.from_openai(OpenAI(
-#     api_key=openai_api_key
-#     ))
-#     generator = rmg.Generator(client=client)
-#     roadmap = generator.generate_roadmap(prompt, depth, retries)
-#     return nx.to_dict_of_dicts(roadmap)
-
-# @app.get("/Getgraphredunremoved")
-# async def secure_endpoint(
-#     openai_api_key: str = Query(get_api_key),
-#     prompt: str = Query(..., description="The prompt for the LLM"),
-#     depth: int = Query(3, description="The depth of the roadmap"),
-#     retries: int = Query(2, description="The number of retries for the LLM call"),
-#     # redunretries: int = Query(2, description="The number of retries for the redundancy node LLM call")
-# ):
-#     client = instructor.from_openai(OpenAI(
-#     api_key=openai_api_key
-#     ))
-#     generator = rmg.Generator(client=client)
-#     roadmap = generator.generate_roadmap(prompt, depth, retries)
-#     Redundant_fixer = rmg.RedundantFunc(client=client)
-#     cleaned_roadmap = nx.node_link_data(Redundant_fixer.remove_redundant_nodes(graph=roadmap))
-#     return cleaned_roadmap
-
 @app.get("/GetgraphFull")
 async def secure_endpoint(
     openai_api_key: str = Query(get_api_key),
@@ -101,7 +70,7 @@ async def secure_endpoint(
     roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = retries)
     cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph=roadmap)
     cleaned_roadmap = websearch.serp_recommendation_graph(graph = cleaned_roadmap, SERPER_API_KEY =  serper_api_key)
-    
+
     cleaned_roadmap = nx.node_link_data(cleaned_roadmap)
     return cleaned_roadmap
 
