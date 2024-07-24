@@ -2,7 +2,7 @@ venv
 .env
 tmp.txt
 respondformat.json
-
+respo
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
