@@ -9,7 +9,7 @@ class ranker:
         return pagerank
     
     def pagerank_graph(self, graph: nx.DiGraph, pagerank: Dict[str, float]) -> nx.DiGraph:
-        for node in tqdm(graph.nodes):
+        for node in tqdm(graph.nodes ,desc = 'Ranking each nodes'):
             new_attrs = {node : {'pagerank': pagerank[node]}}
             old_attrs = graph.nodes[node]
             nx.set_node_attributes(graph, {**old_attrs, **new_attrs})

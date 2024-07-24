@@ -48,7 +48,7 @@ class ResourceFinder:
         }
 
     def serp_recommendation_graph(self, graph: nx.DiGraph, SERPER_API_KEY: str) -> nx.DiGraph:
-        for node in tqdm(graph.nodes):
+        for node in tqdm(graph.nodes, desc = 'Building Recommendation graph'):
             new_attrs = {node : self.serp_recommendation(node, SERPER_API_KEY)}
             old_attrs = graph.nodes[node]
             nx.set_node_attributes(graph, {**old_attrs, **new_attrs})
