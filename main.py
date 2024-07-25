@@ -58,7 +58,6 @@ async def secure_endpoint(
     prompt: str = Query(..., description="The prompt for the LLM"),
     depth: int = Query(3, description="The depth of the roadmap"),
     retries: int = Query(2, description="The number of retries for the LLM call"),
-    redunretries: int = Query(2, description="The number of retries for the redundancy node LLM call")
 ):
     client = instructor.from_openai(OpenAI(
     api_key=openai_api_key
@@ -68,8 +67,8 @@ async def secure_endpoint(
     websearch = rmg.ResourceFinder(SERPER_API_KEY = serper_api_key)
     pagerank = rmg.ranker()
 
-    roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = redunretries)
-    cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph=roadmap, retries = retries)
+    roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = retries)
+    cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph = roadmap, retries = retries)
     cleaned_roadmap = websearch.serp_recommendation_graph(graph = cleaned_roadmap, SERPER_API_KEY =  serper_api_key)
     cleaned_roadmap = pagerank.get_page_rank(graph = cleaned_roadmap)
 
@@ -79,15 +78,17 @@ async def secure_endpoint(
 @app.post("/ExpandNode")
 async def create_upload_files(
     openai_api_key: str = Query(get_api_key),
+    serper_api_key: str = Query(get_serper_api_key),
     upload_file: UploadFile = File(...),
-    prompt: str = Query(..., description="The prompt for the LLM"),
     depth: int = Query(3, description="The depth of the roadmap"),
-    retry: int = Query(2, description="The number of retries for the LLM call"),
+    retries: int = Query(2, description="The number of retries for the LLM call"),
     target_node: str = Query(..., description="target node id")
 ):
     json_data = json.load(upload_file.file)
-    #mapping nodes
-    node_id_map = {node['id']: node for node in json_data['nodes']}
-    def get_node_by_id(node_id):
-        return node_id_map.get(node_id)
-    return get_node_by_id("Audio Engineering")
+    client = instructor.from_openai(OpenAI(
+        api_key=openai_api_key
+        ))
+    nodeexpander = rmg.NodeExpand(client = client, SERPER_API_KEY = serper_api_key)
+    expandedroadmap = nodeexpander.expand_target_node(target_node, graph = json_data, depth = depth, retries = retries)
+    expandedroadmap = nx.node_link_data(expandedroadmap)
+    return expandedroadmap
