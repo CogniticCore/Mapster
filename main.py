@@ -73,6 +73,7 @@ async def secure_endpoint(
     cleaned_roadmap = pagerank.get_page_rank(graph = cleaned_roadmap)
 
     cleaned_roadmap = nx.node_link_data(cleaned_roadmap)
+    cleaned_roadmap['prompt'] = prompt
     return cleaned_roadmap
 
 @app.post("/ExpandNode")

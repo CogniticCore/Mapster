@@ -54,8 +54,13 @@ class Generator:
 
         for topic, description in zip(root_prerequisites, root_description_prerequisites):
             if not graph.has_node(topic):
+                # Add the new node and connect it
                 graph.add_node(topic, description=description)
                 graph.add_edge(root_topic, topic)
+            else:
+                # If the node exists but the edge does not, add the edge
+                if not graph.has_edge(root_topic, topic):
+                    graph.add_edge(root_topic, topic)
             
         for current_depth in range(depth - 1):
             leaf_nodes = [node for node in graph.nodes if graph.out_degree(node) == 0]
@@ -71,8 +76,11 @@ class Generator:
                 child_description_prerequisites = [self.clean_text(x) for x in child_description_prerequisites]
 
                 for child_topic, child_description in zip(child_prerequisites, child_description_prerequisites):
-                    if not graph.has_node(child_topic): 
+                    if not graph.has_node(child_topic):
                         graph.add_node(child_topic, description=child_description)
                         graph.add_edge(topic, child_topic)
+                    else:
+                        if not graph.has_edge(topic, child_topic):
+                            graph.add_edge(topic, child_topic)
 
         return graph

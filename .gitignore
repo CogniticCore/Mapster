@@ -3,6 +3,8 @@ venv
 tmp.txt
 respondformat.json
 respo
+detectgraph.py
+sendingfile.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__
