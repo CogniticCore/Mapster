@@ -15,3 +15,5 @@ from .modules.pagerank import ranker
 from .modules.nodeexpander import NodeExpand
 
 from .modules.nodefixer import GraphFixer
+
+from .modules.jsonranker import sortpgscore

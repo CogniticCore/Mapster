@@ -1,21 +1,15 @@
 from src import RoadmapGen as rmg
 import instructor
 from openai import OpenAI
-import matplotlib.pyplot as plt
 import networkx as nx   
-from networkx.drawing.nx_pydot import graphviz_layout
 from fastapi import FastAPI, Depends
 from fastapi.security import APIKeyHeader
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
-from fastapi.responses import StreamingResponse
-from io import BytesIO
-from PIL import Image
 import json
-from typing import List, Dict
-from tqdm import tqdm
+
 
 
 load_dotenv()
@@ -63,16 +57,19 @@ async def secure_endpoint(
     api_key=openai_api_key
     ))
     generator = rmg.Generator(client=client)
-    Redundant_fixer = rmg.RedundantFunc(client=client)
+    # Redundant_fixer = rmg.RedundantFunc(client=client)
     websearch = rmg.ResourceFinder(SERPER_API_KEY = serper_api_key)
     pagerank = rmg.ranker()
     graphfix = rmg.GraphFixer()
+    titlesort = rmg.sortpgscore()
 
     roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = retries)
-    cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph = roadmap, retries = retries)
+    # cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph = roadmap, retries = retries)
+    cleaned_roadmap = roadmap
     cleaned_roadmap = websearch.serp_recommendation_graph(graph = cleaned_roadmap, SERPER_API_KEY =  serper_api_key)
     cleaned_roadmap = pagerank.get_page_rank(graph = cleaned_roadmap)
     cleaned_roadmap = graphfix.fix_graph(cleaned_roadmap)
+    cleaned_roadmap = titlesort.graphsortattribute(cleaned_roadmap)
 
     cleaned_roadmap = nx.node_link_data(cleaned_roadmap)
     cleaned_roadmap['prompt'] = prompt
@@ -95,3 +92,72 @@ async def create_upload_files(
     expandedroadmap = nodeexpander.expand_target_node(target_node, graph = json_data, depth = depth, retries = retries)
     expandedroadmap = nx.node_link_data(expandedroadmap)
     return expandedroadmap
+
+@app.get("/Getgraph")
+async def secure_endpoint(
+    openai_api_key: str = Query(get_api_key),
+    prompt: str = Query(..., description="The prompt for the LLM"),
+    depth: int = Query(3, description="The depth of the roadmap"),
+    retries: int = Query(2, description="The number of retries for the LLM call"),
+):
+    client = instructor.from_openai(OpenAI(
+    api_key=openai_api_key
+    ))
+    generator = rmg.Generator(client=client)
+    roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = retries)
+
+    cleaned_roadmap = nx.node_link_data(roadmap)
+    cleaned_roadmap['prompt'] = prompt
+    return cleaned_roadmap
+
+@app.post("/mergegraph")
+async def create_upload_files(
+    openai_api_key: str = Query(get_api_key),
+    upload_file: UploadFile = File(...),
+    retries: int = Query(2, description="The number of retries for the LLM call"),
+):
+    json_data = json.load(upload_file.file)
+    client = instructor.from_openai(OpenAI(
+        api_key=openai_api_key
+        ))
+    Redundant_fixer = rmg.RedundantFunc(client=client)
+    roadmap = Redundant_fixer.remove_redundant_nodes(graph = nx.node_link_graph(json_data), retries = retries)
+    return nx.node_link_data(roadmap)
+
+@app.post("/getresources")
+async def create_upload_files(
+    serper_api_key: str = Query(get_serper_api_key),
+    upload_file: UploadFile = File(...),
+    retries: int = Query(2, description="The number of retries for the LLM call"),
+):
+    json_data = json.load(upload_file.file)
+    websearch = rmg.ResourceFinder(SERPER_API_KEY = serper_api_key)
+    roadmap = websearch.serp_recommendation_graph(graph = nx.node_link_graph(json_data), SERPER_API_KEY =  serper_api_key)
+    return nx.node_link_data(roadmap)
+
+@app.post("/pageranker")
+async def create_upload_files(
+    upload_file: UploadFile = File(...),
+):
+    json_data = json.load(upload_file.file)
+    pagerank = rmg.ranker()
+    roadmap = pagerank.get_page_rank(graph = nx.node_link_graph(json_data))
+    return nx.node_link_data(roadmap)
+
+@app.post("/graphtotree")
+async def create_upload_files(
+    upload_file: UploadFile = File(...),
+):
+    json_data = json.load(upload_file.file)
+    graphfix = rmg.GraphFixer()
+    roadmap = graphfix.fix_graph(graph = nx.node_link_graph(json_data))
+    return nx.node_link_data(roadmap)
+
+@app.post("/pageranker")
+async def create_upload_files(
+    upload_file: UploadFile = File(...),
+):
+    json_data = json.load(upload_file.file)
+    titlesort = rmg.sortpgscore()
+    roadmap = titlesort.graphsortattribute(graph = nx.node_link_graph(json_data))
+    return nx.node_link_data(roadmap)
