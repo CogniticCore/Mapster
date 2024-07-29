@@ -10,12 +10,8 @@ import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
-from fastapi.responses import StreamingResponse
-from io import BytesIO
-from PIL import Image
 import json
 from typing import List, Dict
-from tqdm import tqdm
 
 
 load_dotenv()
