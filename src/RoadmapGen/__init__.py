@@ -13,3 +13,5 @@ from .modules.websearch import ResourceFinder
 from .modules.pagerank import ranker
 
 from .modules.nodeexpander import NodeExpand
+
+from .modules.nodefixer import GraphFixer

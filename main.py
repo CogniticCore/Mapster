@@ -66,11 +66,13 @@ async def secure_endpoint(
     Redundant_fixer = rmg.RedundantFunc(client=client)
     websearch = rmg.ResourceFinder(SERPER_API_KEY = serper_api_key)
     pagerank = rmg.ranker()
+    graphfix = rmg.GraphFixer()
 
     roadmap = generator.generate_roadmap(prompt = prompt, depth = depth, retries = retries)
     cleaned_roadmap = Redundant_fixer.remove_redundant_nodes(graph = roadmap, retries = retries)
     cleaned_roadmap = websearch.serp_recommendation_graph(graph = cleaned_roadmap, SERPER_API_KEY =  serper_api_key)
     cleaned_roadmap = pagerank.get_page_rank(graph = cleaned_roadmap)
+    cleaned_roadmap = graphfix.fix_graph(cleaned_roadmap)
 
     cleaned_roadmap = nx.node_link_data(cleaned_roadmap)
     cleaned_roadmap['prompt'] = prompt
