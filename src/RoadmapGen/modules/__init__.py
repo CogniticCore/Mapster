@@ -5,3 +5,4 @@ from .websearch import ResourceFinder
 from .pagerank import ranker
 from .nodeexpander import NodeExpand
 from .nodefixer import GraphFixer
+from .jsonranker import sortpgscore

@@ -22,21 +22,21 @@ class GraphFixer:
                     new_hash_id = self._generate_hash_id(node, src, node_data)
                     node_id_to_hash[(node, src)] = new_hash_id
                     new_node_data = node_data.copy()
-                    new_node_data['title'] = node  # Store the original ID under 'title'
+                    new_node_data['title'] = node
                     new_graph.add_node(new_hash_id, **new_node_data)
             elif in_edges:
                 src = in_edges[0][0]
                 new_hash_id = self._generate_hash_id(node, src, node_data)
                 node_id_to_hash[(node, src)] = new_hash_id
                 new_node_data = node_data.copy()
-                new_node_data['title'] = node  # Store the original ID under 'title'
+                new_node_data['title'] = node
                 new_graph.add_node(new_hash_id, **new_node_data)
             else:
-                # For root nodes or nodes without in-edges
+                # Root nodes / no incoming edge nodes
                 new_hash_id = self._generate_hash_id(node, None, node_data)
                 node_id_to_hash[(node, None)] = new_hash_id
                 new_node_data = node_data.copy()
-                new_node_data['title'] = node  # Store the original ID under 'title'
+                new_node_data['title'] = node
                 new_graph.add_node(new_hash_id, **new_node_data)
 
         for src, tgt in tqdm(graph.edges(), desc="Adding edges"):
