@@ -153,7 +153,7 @@ async def create_upload_files(
     roadmap = graphfix.fix_graph(graph = nx.node_link_graph(json_data))
     return nx.node_link_data(roadmap)
 
-@app.post("/pageranker")
+@app.post("/getgraphranking")
 async def create_upload_files(
     upload_file: UploadFile = File(...),
 ):
