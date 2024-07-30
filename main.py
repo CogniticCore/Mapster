@@ -5,8 +5,8 @@ import json
 
 from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
-from fastapi.middleware.cors import CORSMiddleware
 
+from starlette.middleware.cors import CORSMiddleware
 import networkx as nx
 from src import RoadmapGen as rmg
 
