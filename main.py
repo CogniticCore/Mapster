@@ -5,6 +5,7 @@ import json
 
 from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
+from fastapi.middleware.cors import CORSMiddleware
 
 import networkx as nx
 from src import RoadmapGen as rmg
@@ -16,6 +17,26 @@ from openai import OpenAI
 load_dotenv()
 
 app = FastAPI()
+
+# Define the list of allowed origins
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:3000",
+    "https://roadmap-planner-api.onrender.com",
+    "https://mapster-front-end.vercel.app",
+]
+
+# Add CORSMiddleware to the app with restricted methods
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 # API key configurations
 API_KEY = os.getenv("API_KEY")
