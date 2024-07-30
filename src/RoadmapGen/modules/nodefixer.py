@@ -46,6 +46,6 @@ class GraphFixer:
 
                 if new_src_hash and new_tgt_hash:
                     new_graph.add_edge(new_src_hash, new_tgt_hash, **graph.get_edge_data(src_node, tgt_node))
-                    print(f"Debug: Creating edge from {new_src_hash} to {new_tgt_hash} (original {src_node} -> {tgt_node})")
+                    # print(f"Debug: Creating edge from {new_src_hash} to {new_tgt_hash} (original {src_node} -> {tgt_node})")
 
         return new_graph
