@@ -1,5 +1,5 @@
 ![36 1](https://github.com/user-attachments/assets/9b87e166-19f4-4e5a-bd27-d4cddb890e87)
-[<p align="center"><img alt="alt_text" width="80px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1280px-YouTube_full-color_icon_%282017%29.svg.png" /></p>](https://www.youtube.com/watch?v=lVltFC7K8sY)
+<p align="center"><a href="https://www.youtube.com/watch?v=lVltFC7K8sY"><img alt="alt_text" width="80px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1280px-YouTube_full-color_icon_%282017%29.svg.png" /></a></p>
 # API Documentation for Learning Roadmap Generator
 
 ## Solution Description
