@@ -1,4 +1,5 @@
 ![36 1](https://github.com/user-attachments/assets/9b87e166-19f4-4e5a-bd27-d4cddb890e87)
+[<p align="center"><img alt="alt_text" width="80px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1280px-YouTube_full-color_icon_%282017%29.svg.png" /></p>](https://www.youtube.com/watch?v=lVltFC7K8sY)
 # API Documentation for Learning Roadmap Generator
 
 ## Solution Description
@@ -49,6 +50,8 @@ The Learning Roadmap Generator API creates personalized learning roadmaps for us
 
 #### `GET /graph/full`
 Generate a full learning roadmap with all cleaning and ranking steps.
+
+[![Thumbnail](https://i.ytimg.com/an_webp/lVltFC7K8sY/mqdefault_6s.webp?du=3000&sqp=CKDKpbUG&rs=AOn4CLDeU9ErtGQxAtdlHDuPdj2e-YZBzw)](https://www.youtube.com/watch?v=lVltFC7K8sY)
 
 ##### Parameters
 
@@ -254,3 +257,9 @@ curl -X 'POST' \
 - **PageRank Scores**: JSON object with nodes ranked based on PageRank algorithm.
 - **Converted Tree**: JSON object representing the roadmap as a tree structure.
 - **Ranked Roadmap**: JSON object with nodes ranked based on various attributes.
+
+# Contributors
+
+- Front End Developer: [https://github.com/hisunedayo](Hisunedayo🦊)
+- Back End Developer: [https://github.com/34RTHY](34RTHY🌏)
+- AI Developers: [https://github.com/tonpia](tonpia🎍)
