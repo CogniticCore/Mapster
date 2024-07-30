@@ -5,8 +5,8 @@ import json
 
 from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
+from fastapi.middleware.cors import CORSMiddleware
 
-from starlette.middleware.cors import CORSMiddleware
 import networkx as nx
 from src import RoadmapGen as rmg
 
@@ -29,17 +29,8 @@ origins = [
     "https://mapster-front-end.vercel.app",
     "https://www.cogniticcore.xyz",
     "https://mapster-front-end.vercel.app/demo",
-    "https://www.cogniticcore.xyz/demo",
+    "https://www.cogniticcore.xyz",
 ]
-
-# Add CORSMiddleware to the app with restricted methods
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # API key configurations
 API_KEY = os.getenv("API_KEY")
@@ -82,6 +73,15 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
         return SERPER_API_KEY
     else:
         raise HTTPException(status_code=403, detail="Could not validate Serper credentials")
+
+# Add CORSMiddleware to the app with restricted methods
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 def read_root():
@@ -274,3 +274,4 @@ async def get_graph_ranking(upload_file: UploadFile = File(...)):
     titlesort = rmg.sortpgscore()
     roadmap = titlesort.graphsortattribute(graph=nx.node_link_graph(json_data))
     return nx.node_link_data(roadmap)
+
