@@ -82,8 +82,8 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
     
 @app.get("/GetgraphFull")
 async def get_graph_full(
-    openai_api_key: str = Depends(get_api_key),
-    serper_api_key: str = Depends(get_serper_api_key),
+    openai_api_key: str = Query(get_api_key),
+    serper_api_key: str = Query(get_serper_api_key),
     prompt: str = Query(..., description="The prompt for the LLM"),
     depth: int = Query(3, description="The depth of the roadmap"),
     retries: int = Query(2, description="The number of retries for the LLM call")
@@ -120,8 +120,8 @@ async def get_graph_full(
 
 @app.post("/ExpandNode")
 async def expand_node(
-    openai_api_key: str = Depends(get_api_key),
-    serper_api_key: str = Depends(get_serper_api_key),
+    openai_api_key: str = Query(get_api_key),
+    serper_api_key: str = Query(get_serper_api_key),
     upload_file: UploadFile = File(...),
     depth: int = Query(3, description="The depth of the roadmap"),
     retries: int = Query(2, description="The number of retries for the LLM call"),
@@ -149,7 +149,7 @@ async def expand_node(
 
 @app.get("/Getgraph")
 async def get_graph(
-    openai_api_key: str = Depends(get_api_key),
+    openai_api_key: str = Query(get_api_key),
     prompt: str = Query(..., description="The prompt for the LLM"),
     depth: int = Query(3, description="The depth of the roadmap"),
     retries: int = Query(2, description="The number of retries for the LLM call")
@@ -176,7 +176,7 @@ async def get_graph(
 
 @app.post("/mergegraph")
 async def merge_graph(
-    openai_api_key: str = Depends(get_api_key),
+    openai_api_key: str = Query(get_api_key),
     upload_file: UploadFile = File(...),
     retries: int = Query(2, description="The number of retries for the LLM call")
 ):
@@ -199,7 +199,7 @@ async def merge_graph(
 
 @app.post("/getresources")
 async def get_resources(
-    serper_api_key: str = Depends(get_serper_api_key),
+    serper_api_key: str = Query(get_serper_api_key),
     upload_file: UploadFile = File(...),
     retries: int = Query(2, description="The number of retries for the LLM call")
 ):
