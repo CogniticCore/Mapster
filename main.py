@@ -88,6 +88,7 @@ async def get_graph_full(
     depth: int = Query(3, description="The depth of the roadmap"),
     retries: int = Query(2, description="The number of retries for the LLM call")
 ):
+    print('A request has been made')
     """
     Generate a full learning roadmap with all cleaning and ranking steps.
     
