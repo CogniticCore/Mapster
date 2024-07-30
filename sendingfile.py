@@ -5,10 +5,11 @@ import os
 load_dotenv()
 
 # Define the file path and other parameters
-file_path = '/Users/sakchotekhemmarach/Documents/GitHub/Roadmap_planner_api/respondformat.json'
+file_path = 'assets/respondformat.json'
 api_key = os.getenv("API_KEY")
+serper_api_key = os.getenv('SERPER_API_KEY')
 prompt = 'How to Build a Desktop AI Assistant with a custom voice from character ARONA from Blue Archive'
-depth = 3
+depth = 2
 retry = 2
 target_node = 'Audio Engineering'
 
@@ -19,6 +20,7 @@ with open(file_path, 'rb') as file:
     # Query parameters are sent in the URL
     params = {
         'openai_api_key': api_key,
+        'serper_api_key': serper_api_key,
         'prompt': prompt,
         'depth': depth,
         'retry': retry,
@@ -26,7 +28,7 @@ with open(file_path, 'rb') as file:
     }
 
     # Send the POST request
-    response = requests.post('http://127.0.0.1:8000/uploadfiles/', files=files, params=params)
+    response = requests.post('http://127.0.0.1:8000/ExpandNode/', files=files, params=params)
 
     # Check if the request was successful
     if response.status_code == 200:

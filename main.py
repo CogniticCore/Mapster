@@ -89,7 +89,7 @@ async def create_upload_files(
         api_key=openai_api_key
         ))
     nodeexpander = rmg.NodeExpand(client = client, SERPER_API_KEY = serper_api_key)
-    expandedroadmap = nodeexpander.expand_target_node(target_node, graph = json_data, depth = depth, retries = retries)
+    expandedroadmap = nodeexpander.expand_target_node(target_node, graph = nx.node_link_graph(json_data), depth = depth, retries = retries)
     expandedroadmap = nx.node_link_data(expandedroadmap)
     return expandedroadmap
 
