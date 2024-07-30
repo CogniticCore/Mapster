@@ -80,7 +80,7 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
     else:
         raise HTTPException(status_code=403, detail="Could not validate Serper credentials")
     
-@app.get("/graphFull")
+@app.get("/graph/Full")
 async def get_graph_full(
     openai_api_key: str = Query(get_api_key),
     serper_api_key: str = Query(get_serper_api_key),
@@ -118,7 +118,7 @@ async def get_graph_full(
     cleaned_roadmap['prompt'] = prompt
     return cleaned_roadmap
 
-@app.post("/ExpandNode")
+@app.post("/graph/ExpandNode")
 async def expand_node(
     openai_api_key: str = Query(get_api_key),
     serper_api_key: str = Query(get_serper_api_key),
@@ -197,7 +197,7 @@ async def merge_graph(
     roadmap = redundant_fixer.remove_redundant_nodes(graph=nx.node_link_graph(json_data), retries=retries)
     return nx.node_link_data(roadmap)
 
-@app.post("/resources")
+@app.post("/graph/resources")
 async def get_resources(
     serper_api_key: str = Query(get_serper_api_key),
     upload_file: UploadFile = File(...),
@@ -219,7 +219,7 @@ async def get_resources(
     roadmap = websearch.serp_recommendation_graph(graph=nx.node_link_graph(json_data), SERPER_API_KEY=serper_api_key)
     return nx.node_link_data(roadmap)
 
-@app.post("/pageranker")
+@app.post("/graph/pageranker")
 async def page_ranker(upload_file: UploadFile = File(...)):
     """
     Apply PageRank algorithm to the roadmap.
@@ -235,7 +235,7 @@ async def page_ranker(upload_file: UploadFile = File(...)):
     roadmap = pagerank.get_page_rank(graph=nx.node_link_graph(json_data))
     return nx.node_link_data(roadmap)
 
-@app.post("/graphtotree")
+@app.post("/graph/tree")
 async def graph_to_tree(upload_file: UploadFile = File(...)):
     """
     Convert a graph to a tree structure.
