@@ -81,7 +81,7 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
     else:
         raise HTTPException(status_code=403, detail="Could not validate Serper credentials")
     
-@app.get("/graph/Full")
+@app.get("/graphfull")
 async def get_graph_full(
     openai_api_key: str = Query(get_api_key),
     serper_api_key: str = Query(get_serper_api_key),
