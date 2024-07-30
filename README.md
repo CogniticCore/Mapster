@@ -47,7 +47,7 @@ The Learning Roadmap Generator API creates personalized learning roadmaps for us
 
 ### Endpoints
 
-#### `GET /graph/Full`
+#### `GET /graph/full`
 Generate a full learning roadmap with all cleaning and ranking steps.
 
 ##### Parameters
@@ -67,11 +67,11 @@ Generate a full learning roadmap with all cleaning and ranking steps.
 
 ```bash
 curl -X 'GET' \
-  'http://mapster-cogniticcore.onrender.com/graph/Full?openai_api_key=<OPENAI_API_KEY>&serper_api_key=<SERPER_API_KEY>&prompt=Learn+Python&depth=3&retries=2' \
+  'http://mapster-cogniticcore.onrender.com/graph/full?openai_api_key=<OPENAI_API_KEY>&serper_api_key=<SERPER_API_KEY>&prompt=Learn+Python&depth=3&retries=2' \
   -H 'accept: application/json'
 ```
 
-#### `POST /graph/ExpandNode`
+#### `POST /graph/expandnode`
 Expand a specific node in the roadmap.
 
 ##### Parameters
