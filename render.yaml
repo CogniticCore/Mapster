@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: Roadmap_planner_api
+    runtime: python
+    plan: Starter
+    autoDeploy: false
+    buildCommand: pip install -r requirements.txt
+    Start Command: uvicorn main:app --host 0.0.0.0 --port $PORT
