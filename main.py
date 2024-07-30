@@ -75,13 +75,6 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
         raise HTTPException(status_code=403, detail="Could not validate Serper credentials")
 
 # Add CORSMiddleware to the app with restricted methods
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 @app.get("/")
 def read_root():
@@ -275,3 +268,10 @@ async def get_graph_ranking(upload_file: UploadFile = File(...)):
     roadmap = titlesort.graphsortattribute(graph=nx.node_link_graph(json_data))
     return nx.node_link_data(roadmap)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
