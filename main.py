@@ -27,6 +27,7 @@ origins = [
     "http://127.0.0.1:3000",
     "https://mapster-cogniticcore.onrender.com",
     "https://mapster-front-end.vercel.app",
+    "https://www.cogniticcore.xyz",
 ]
 
 # Add CORSMiddleware to the app with restricted methods
@@ -34,7 +35,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
