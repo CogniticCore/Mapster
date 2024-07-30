@@ -80,7 +80,11 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
         return SERPER_API_KEY
     else:
         raise HTTPException(status_code=403, detail="Could not validate Serper credentials")
-    
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Mapster"}
+
 @app.get("/graphfull")
 async def get_graph_full(
     openai_api_key: str = Query(get_api_key),
