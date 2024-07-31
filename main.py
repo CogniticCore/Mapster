@@ -3,15 +3,25 @@ from dotenv import load_dotenv
 
 import json
 
-from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile
+from fastapi import FastAPI, Depends, HTTPException, Security, Query, File, UploadFile, Header, Body
 from fastapi.security.api_key import APIKeyHeader, APIKeyQuery
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from pydantic import BaseModel, constr
+from typing import Optional, Dict
 
 import networkx as nx
 from src import RoadmapGen as rmg
 
 import instructor
 from openai import OpenAI
+
+from datetime import datetime, timezone
+
+from time import time
+
+import hashlib
 
 # Load environment variables from .env file
 load_dotenv()
@@ -80,28 +90,134 @@ async def get_serper_api_key(serper_api_key_header: str = Security(serper_api_ke
 def read_root():
     return {"message": "Welcome to the Mapster"}
 
-@app.get("/graph/full")
-async def get_graph_full(
-    openai_api_key: str = Query(get_api_key),
-    serper_api_key: str = Query(get_serper_api_key),
-    prompt: str = Query(..., description="The prompt for the LLM"),
-    depth: int = Query(3, description="The depth of the roadmap"),
-    retries: int = Query(2, description="The number of retries for the LLM call")
-):
+class PayloadModel(BaseModel):
+    openai_api_key: str
+    serper_api_key: str
+    prompt: str
+    depth: int
+    retries: int
+
+class CallRequestModel(BaseModel):
+    method: str
+    payload: PayloadModel
+
+# Define a model for the header validation
+class CallHeaders(BaseModel):
+    x_marketplace_token: str
+    x_request_id: str
+    x_user_id: str
+    x_user_role: Optional[str] = None
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate_role
+
+    @classmethod
+    def validate_role(cls, value: str) -> str:
+        valid_roles = ["admin", "user", "publisher"]
+        if value and value not in valid_roles:
+            raise ValueError(f"Invalid user role: {value}. Must be one of {valid_roles}.")
+        return value
+    
+class ErrorCode(BaseModel):
+    status: str
+    reason: str
+
+class ResponseData(BaseModel):
+    dataType: str
+    data: dict
+    
+class ResponseModel(BaseModel):
+    apiVersion: str
+    service: str
+    datetime: str
+    processDuration: float
+    taskId: str
+    isResponseImmediate: bool
+    extraType: str
+    response: ResponseData
+    errorCode: ErrorCode
+
+class StatusCodes:
+    # Task stage
+    SUCCESS = "AC_000"         # Task completed successfully
+    PENDING = "AC_001"         # Task is pending
+    INPROGRESS = "AC_002"      # Task is currently in progress
+    
+    # Client Errors
+    INVALID_REQUEST = "AC_400" # Empty, null, or invalid field in payload
+    EXCEEDING_PERMITTED_RESOURCES = "AC_401" # Exceeded allowed time/resources
+    RESOURCE_DOES_NOT_EXIST = "AC_402" # Resource not found (e.g., melody)
+    UNSUPPORTED = "AC_403"     # Unsupported resource type (e.g., non-mp3 melody)
+    
+    # Server Errors
+    TIMEOUT = "AC_500"         # Task timeout
+    ERROR = "AC_501"           # Unknown error
+    RABBIT_ERROR = "AC_502"    # RabbitMQ connection error
+    REDIS_ERROR = "AC_503"     # Redis connection error (adjusted the code)
+    S3_ERROR = "AC_504"        # S3 connection error
+
+def generate_task_id(data: Dict) -> str:
+    # Convert the dictionary to a sorted JSON string to ensure consistent hashing
+    json_str = json.dumps(data, sort_keys=True)
+    
+    # Create a SHA-256 hash of the JSON string
+    hash_object = hashlib.sha256(json_str.encode())
+    
+    # Return the hexadecimal representation of the hash
+    return hash_object.hexdigest()
+
+@app.post("/result")
+async def get_result(
+    x_marketplace_token: str = Header(...),
+    x_request_id: str = Header(...),
+    x_user_id: str = Header(...),
+    x_user_role: Optional[str] = Header(None),
+    body: CallRequestModel = Body(...)
+):  
+    start_time = time.time()
     print('A request has been made')
-    """
-    Generate a full learning roadmap with all cleaning and ranking steps.
+
+    x_marketplace_token = x_marketplace_token.strip()
+    x_request_id = x_request_id.strip()
+    x_user_id = x_user_id.strip()
+    if x_user_role:
+        x_user_role = x_user_role.strip()
+
+    if not x_marketplace_token:
+        raise HTTPException(status_code=400, detail="Missing x-marketplace-token header")
+    if not x_request_id:
+        raise HTTPException(status_code=400, detail="Missing x-request-id header")
+    if not x_user_id:
+        raise HTTPException(status_code=400, detail="Missing x-user-id header")
     
-    Parameters:
-    openai_api_key (str): OpenAI API key.
-    serper_api_key (str): Serper API key.
-    prompt (str): The prompt for the LLM.
-    depth (int): The depth of the roadmap.
-    retries (int): The number of retries for the LLM call.
+    method = body.method
+    payload = body.payload
+
+    if method not in ["graphfull"]:
+        raise HTTPException(status_code=400, detail="Invalid method. Supported method is 'graphfull'")
     
-    Returns:
-    dict: The cleaned and ranked learning roadmap.
-    """
+    openai_api_key = payload.openai_api_key
+    serper_api_key = payload.serper_api_key
+    prompt = payload.prompt
+    depth = payload.depth
+    retries = payload.retries
+    
+    unique_data = {
+        "x_marketplace_token": x_marketplace_token,
+        "x_request_id": x_request_id,
+        "x_user_id": x_user_id,
+        "x_user_role": x_user_role,
+        "method": method,
+        "openai_api_key": payload.openai_api_key,
+        "serper_api_key": payload.serper_api_key,
+        "prompt": payload.prompt,
+        "depth": payload.depth,
+        "retries": payload.retries
+    }
+    task_id = generate_task_id(unique_data)
+
+
     client = instructor.from_openai(OpenAI(api_key=openai_api_key))
     generator = rmg.Generator(client=client)
     websearch = rmg.ResourceFinder(SERPER_API_KEY=serper_api_key)
@@ -117,156 +233,32 @@ async def get_graph_full(
 
     cleaned_roadmap = nx.node_link_data(cleaned_roadmap)
     cleaned_roadmap['prompt'] = prompt
-    return cleaned_roadmap
 
-@app.post("/graph/ExpandNode")
-async def expand_node(
-    openai_api_key: str = Query(get_api_key),
-    serper_api_key: str = Query(get_serper_api_key),
-    upload_file: UploadFile = File(...),
-    depth: int = Query(3, description="The depth of the roadmap"),
-    retries: int = Query(2, description="The number of retries for the LLM call"),
-    target_node: str = Query(..., description="Target node ID")
-):
-    """
-    Expand a specific node in the roadmap.
-    
-    Parameters:
-    openai_api_key (str): OpenAI API key.
-    serper_api_key (str): Serper API key.
-    upload_file (UploadFile): The uploaded roadmap file.
-    depth (int): The depth of the roadmap.
-    retries (int): The number of retries for the LLM call.
-    target_node (str): The ID of the target node to expand.
-    
-    Returns:
-    dict: The expanded learning roadmap.
-    """
-    json_data = json.load(upload_file.file)
-    client = instructor.from_openai(OpenAI(api_key=openai_api_key))
-    nodeexpander = rmg.NodeExpand(client=client, SERPER_API_KEY=serper_api_key)
-    expanded_roadmap = nodeexpander.expand_target_node(target_node, graph=nx.node_link_graph(json_data), depth=depth, retries=retries)
-    return nx.node_link_data(expanded_roadmap)
+    end_time = time.time()
+    process_duration = end_time - start_time
 
-@app.get("/graph")
-async def get_graph(
-    openai_api_key: str = Query(get_api_key),
-    prompt: str = Query(..., description="The prompt for the LLM"),
-    depth: int = Query(3, description="The depth of the roadmap"),
-    retries: int = Query(2, description="The number of retries for the LLM call")
-):
-    """
-    Generate a learning roadmap.
-    
-    Parameters:
-    openai_api_key (str): OpenAI API key.
-    prompt (str): The prompt for the LLM.
-    depth (int): The depth of the roadmap.
-    retries (int): The number of retries for the LLM call.
-    
-    Returns:
-    dict: The generated learning roadmap.
-    """
-    client = instructor.from_openai(OpenAI(api_key=openai_api_key))
-    generator = rmg.Generator(client=client)
-    roadmap = generator.generate_roadmap(prompt=prompt, depth=depth, retries=retries)
+    #change format to store in db
+    response = {
+        "apiVersion": "v1",
+        "service": "graphfull",
+        "datetime": datetime.now(timezone.utc).isoformat(),
+        "processDuration": process_duration,
+        "taskId": task_id,  # Replace with actual task ID if available
+        "isResponseImmediate": False,  # Replace with actual value if needed
+        "response" :{
+            "dataType": "DICT",
+            "data": cleaned_roadmap
+        },
+        "errorCode": {
+            "status": StatusCodes.SUCCESS,
+            "reason": "success"
+        }
+    }
 
-    cleaned_roadmap = nx.node_link_data(roadmap)
-    cleaned_roadmap['prompt'] = prompt
-    return cleaned_roadmap
+    return response
+    
 
-@app.post("/mergegraph")
-async def merge_graph(
-    openai_api_key: str = Query(get_api_key),
-    upload_file: UploadFile = File(...),
-    retries: int = Query(2, description="The number of retries for the LLM call")
-):
-    """
-    Merge nodes in the roadmap to remove redundancy.
-    
-    Parameters:
-    openai_api_key (str): OpenAI API key.
-    upload_file (UploadFile): The uploaded roadmap file.
-    retries (int): The number of retries for the LLM call.
-    
-    Returns:
-    dict: The roadmap with redundant nodes removed.
-    """
-    json_data = json.load(upload_file.file)
-    client = instructor.from_openai(OpenAI(api_key=openai_api_key))
-    redundant_fixer = rmg.RedundantFunc(client=client)
-    roadmap = redundant_fixer.remove_redundant_nodes(graph=nx.node_link_graph(json_data), retries=retries)
-    return nx.node_link_data(roadmap)
 
-@app.post("/graph/resources")
-async def get_resources(
-    serper_api_key: str = Query(get_serper_api_key),
-    upload_file: UploadFile = File(...),
-    retries: int = Query(2, description="The number of retries for the LLM call")
-):
-    """
-    Get recommended resources for the roadmap.
-    
-    Parameters:
-    serper_api_key (str): Serper API key.
-    upload_file (UploadFile): The uploaded roadmap file.
-    retries (int): The number of retries for the LLM call.
-    
-    Returns:
-    dict: The roadmap with recommended resources.
-    """
-    json_data = json.load(upload_file.file)
-    websearch = rmg.ResourceFinder(SERPER_API_KEY=serper_api_key)
-    roadmap = websearch.serp_recommendation_graph(graph=nx.node_link_graph(json_data), SERPER_API_KEY=serper_api_key)
-    return nx.node_link_data(roadmap)
-
-@app.post("/graph/pageranker")
-async def page_ranker(upload_file: UploadFile = File(...)):
-    """
-    Apply PageRank algorithm to the roadmap.
-    
-    Parameters:
-    upload_file (UploadFile): The uploaded roadmap file.
-    
-    Returns:
-    dict: The roadmap with PageRank scores.
-    """
-    json_data = json.load(upload_file.file)
-    pagerank = rmg.ranker()
-    roadmap = pagerank.get_page_rank(graph=nx.node_link_graph(json_data))
-    return nx.node_link_data(roadmap)
-
-@app.post("/graph/tree")
-async def graph_to_tree(upload_file: UploadFile = File(...)):
-    """
-    Convert a graph to a tree structure.
-    
-    Parameters:
-    upload_file (UploadFile): The uploaded roadmap file.
-    
-    Returns:
-    dict: The roadmap as a tree structure.
-    """
-    json_data = json.load(upload_file.file)
-    graphfix = rmg.GraphFixer()
-    roadmap = graphfix.fix_graph(graph=nx.node_link_graph(json_data))
-    return nx.node_link_data(roadmap)
-
-@app.post("/graphranking")
-async def get_graph_ranking(upload_file: UploadFile = File(...)):
-    """
-    Sort the roadmap by PageRank scores.
-    
-    Parameters:
-    upload_file (UploadFile): The uploaded roadmap file.
-    
-    Returns:
-    dict: The sorted roadmap.
-    """
-    json_data = json.load(upload_file.file)
-    titlesort = rmg.sortpgscore()
-    roadmap = titlesort.graphsortattribute(graph=nx.node_link_graph(json_data))
-    return nx.node_link_data(roadmap)
 
 app.add_middleware(
     CORSMiddleware,
