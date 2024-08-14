@@ -13,6 +13,7 @@ from src import RoadmapGen as rmg
 import instructor
 from openai import OpenAI
 
+from .Mapster.routes.main_route import v0_route
 # Load environment variables from .env file
 load_dotenv()
 
